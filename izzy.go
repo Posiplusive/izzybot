@@ -9,17 +9,17 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.ID == s.State.User.ID {
-		return
+func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+	ch, _ := s.State.Channel(m.ChannelID)
+	if ch == nil {
+		ch, _ = s.Channel(m.ChannelID)
 	}
+
+	fmt.Printf("Message from @%s in #%+v: %s\n", m.Author.Username, ch.Name, m.Content)
 
 	if m.Content == "!waifu" {
 		s.ChannelMessageSend(m.ChannelID, "Me! (Posi+ive is simping hard for me...)")
 	}
-
-	// msg := fmt.Sprintf("Message from @%s in #%s: %s", m.Author.Username, discordgo.Channel.Name, m.Content)
-	// fmt.Println(msg)
 }
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 		fmt.Println(x)
 	}
 
-	izzy.AddHandler(messageCreate)
+	izzy.AddHandler(waifuHandler)
 
 	izzy.Identify.Intents = discordgo.IntentsGuildMessages
 
