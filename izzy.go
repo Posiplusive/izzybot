@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"slices"
 	"syscall"
 	"time"
@@ -11,9 +12,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"gopkg.in/yaml.v3"
 )
-
-var ostime = time.Now()
-var tz, _ = time.LoadLocation("Local")
 
 func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	ch, _ := s.State.Channel(m.ChannelID)
@@ -63,6 +61,14 @@ func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if m.Content == "!time" {
+		var systz string
+		if runtime.GOOS == "android" {
+			systz = "Asia/Kuala_Lumpur"
+		} else {
+			systz = "Local"
+		}
+		tz, _ := time.LoadLocation(systz)
+		ostime := time.Now()
 		mytime := ostime.In(tz).Format(time.UnixDate)
 		var timemsg string = fmt.Sprintf("The time at my husband's place is currently %s!", mytime)
 		s.ChannelMessageSend(m.ChannelID, timemsg)
@@ -70,6 +76,17 @@ func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func main() {
+	var ostime = time.Now()
+	var systz string
+
+	if runtime.GOOS == "android" {
+		systz = "Asia/Kuala_Lumpur"
+	} else {
+		systz = "Local"
+	}
+
+	tz, _ := time.LoadLocation(systz)
+
 	token, err := os.ReadFile("./token.txt")
 	if err != nil {
 		fmt.Println("Error creating Discord session,", err)
