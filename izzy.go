@@ -13,6 +13,7 @@ import (
 )
 
 var ostime = time.Now()
+var tz, _ = time.LoadLocation("Local")
 
 func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	ch, _ := s.State.Channel(m.ChannelID)
@@ -62,8 +63,7 @@ func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if m.Content == "!time" {
-		ostime := time.Now()
-		mytime := ostime.Format(time.UnixDate)
+		mytime := ostime.In(tz).Format(time.UnixDate)
 		var timemsg string = fmt.Sprintf("The time at my husband's place is currently %s!", mytime)
 		s.ChannelMessageSend(m.ChannelID, timemsg)
 	}
@@ -90,7 +90,7 @@ func main() {
 	izzy.Open()
 
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
-	fmt.Printf("Bot was started in %s\n", ostime.Format(time.UnixDate))
+	fmt.Printf("Bot was started in %s\n", ostime.In(tz).Format(time.UnixDate))
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
