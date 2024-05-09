@@ -101,10 +101,9 @@ func main() {
 	}
 
 	izzy.AddHandler(waifuHandler)
-
 	izzy.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
-
 	izzy.Open()
+	izzy.UpdateGameStatus(0, "with Posi+ive!")
 
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	fmt.Printf("Bot was started in %s\n", ostime.In(tz).Format(time.UnixDate))
