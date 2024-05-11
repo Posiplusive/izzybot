@@ -63,7 +63,7 @@ func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == "!time" {
 		var systz string
 		if runtime.GOOS == "android" {
-			systz = "Asia/Kuala_Lumpur"
+			systz = "Asia/Kuala_Lumpur" //RODO: do not hardcode timezone info in bot
 		} else {
 			systz = "Local"
 		}
@@ -72,6 +72,14 @@ func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		mytime := ostime.In(tz).Format(time.UnixDate)
 		var timemsg string = fmt.Sprintf("The time at my husband's place is currently %s!", mytime)
 		s.ChannelMessageSend(m.ChannelID, timemsg)
+	}
+
+	if m.Content == "!boop" {
+		s.ChannelMessageSend(m.ChannelID, "<a:IzzyCloseBoop:1237954801459794001>")
+	}
+
+	if m.Content == "!rizz" {
+		s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{Content: "I will rizz you up my dear~", StickerIDs: []string{"1232131198231380049"}})
 	}
 }
 
