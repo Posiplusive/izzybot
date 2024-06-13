@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"runtime"
 	"slices"
+	"strings"
 	"syscall"
 	"time"
 
@@ -63,7 +64,7 @@ func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == "!time" {
 		var systz string
 		if runtime.GOOS == "android" {
-			systz = "Asia/Kuala_Lumpur" //RODO: do not hardcode timezone info in bot
+			systz = "Asia/Kuala_Lumpur" //TODO: do not hardcode timezone info in bot
 		} else {
 			systz = "Local"
 		}
@@ -81,6 +82,22 @@ func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == "!rizz" {
 		s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{Content: "I will rizz you up my dear~", StickerIDs: []string{"1232131198231380049"}})
 	}
+
+	// TODO: Implement image grabbing command
+	// if m.Content == "!izzy" {
+	//	resp, _ := http.Get("https://derpibooru.org/api/v1/json/search/posts?q=subject:time%20wasting%20thread")
+	//
+	//	s.ChannelMessageSend(m.ChannelID, resp.Status)
+	//}
+
+	if strings.Contains(m.Content, "hello") {
+		s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{StickerIDs: []string{"1248585770902491187"}})
+	}
+}
+
+func invHandler(s *discordgo.Session, i *discordgo.InviteCreate) {
+	c := fmt.Sprintf("Invite created! Invite was created by @%s and goes to <#%s>", i.Inviter, i.ChannelID)
+	s.ChannelMessageSend("1239034730855530639", c)
 }
 
 func main() {
@@ -109,6 +126,7 @@ func main() {
 	}
 
 	izzy.AddHandler(waifuHandler)
+	izzy.AddHandler(invHandler)
 	izzy.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
 	izzy.Open()
 	izzy.UpdateGameStatus(0, "with Posi+ive!")
