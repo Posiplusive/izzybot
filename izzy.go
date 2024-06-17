@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"regexp"
 	"runtime"
 	"slices"
 	"strings"
@@ -14,7 +15,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+// Variable initialization
+var re = regexp.MustCompile(`(?:\A|\s|^)(cry|crying|sob|sobbing|😭)(?:\s|\z|$)`)
+
+//var prefix = "!"
+
+func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	ch, _ := s.State.Channel(m.ChannelID)
 	if ch == nil {
 		ch, _ = s.Channel(m.ChannelID)
@@ -84,20 +90,120 @@ func waifuHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// TODO: Implement image grabbing command
-	// if m.Content == "!izzy" {
-	//	resp, _ := http.Get("https://derpibooru.org/api/v1/json/search/posts?q=subject:time%20wasting%20thread")
-	//
-	//	s.ChannelMessageSend(m.ChannelID, resp.Status)
-	//}
+	if strings.HasPrefix(m.Content, ">>>") {
+
+		postID := strings.TrimPrefix(m.Content, ">>>")
+		//derpiLink := fmt.Sprintf("https://derpibooru.org/api/v1/json/images/%s", postID)
+		derpiLink := fmt.Sprintf("https://derpibooru.org/images/%s", postID)
+		s.ChannelMessageSend(m.ChannelID, derpiLink)
+
+		//reqUrl, err := http.Get(derpiLink)
+		//if err != nil {
+		//	log.Fatal(err)
+		//}
+		//defer reqUrl.Body.Close()
+		//
+		//responsedata, err := io.ReadAll(reqUrl.Body)
+		//if err != nil {
+		//	log.Fatal(err)
+		//}
+		//
+		//type Post struct {
+		//	Image string `json:"image"`
+		//	ID    string `json:"id"`
+		//}
+		//
+		//var unmarshaled Post
+		//
+		//unmarshalErr := json.Unmarshal(responsedata, &unmarshaled)
+		//if err != nil {
+		//	log.Fatal(unmarshalErr)
+		//}
+		//
+		//fmt.Printf(unmarshaled.ID)
+		// derpiLink := fmt.Sprintf("https://derpibooru.org/images/%s", )
+		// s.ChannelMessageSend(m.ChannelID, derpiLink)
+	}
 
 	if strings.Contains(m.Content, "hello") {
-		s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{StickerIDs: []string{"1248585770902491187"}})
+		_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{Content: "Hi friend!!!", StickerIDs: []string{"1248585770902491187"}})
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	if strings.Contains(m.Content, "chad") {
+		_, err := s.ChannelMessageSendComplex(m.ChannelID, &discordgo.MessageSend{StickerIDs: []string{"1246019517549645844"}})
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	if re.MatchString(m.Content) {
+		s.MessageReactionAdd(m.ChannelID, m.ID, ":IzzySob:1246619614285135952")
+	}
+
+	if strings.Contains(m.Content, "kek") {
+		s.MessageReactionAdd(m.ChannelID, m.ID, ":IzzyKek:1239569282791247963")
+	}
+
+	if strings.Contains(m.Content, "good morning izzy") {
+		s.ChannelMessageSend(m.ChannelID, "Good morning honey~")
 	}
 }
 
+func messageEdit(s *discordgo.Session, e *discordgo.MessageUpdate) {
+	var beforeEdit string
+	var afterEdit string
+	var authorID string
+
+	afterEdit = e.Content
+
+	if afterEdit == "" {
+		return
+	}
+
+	if e.BeforeUpdate == nil {
+		beforeEdit = "`Didn't catch that.`"
+		afterEdit = "`Didn't catch that.`"
+	} else {
+		beforeEdit = e.BeforeUpdate.Content
+		afterEdit = e.Content
+	}
+
+	if e.Author == nil {
+		authorID = "`Didn't catch that.`"
+	} else {
+		authorID = e.Author.ID
+	}
+
+	editEmbed := fmt.Sprintf("Author: <@%s>\nIn: <#%s>\nEdited: %s\nBefore edit: %s", authorID, e.ChannelID, afterEdit, beforeEdit)
+	s.ChannelMessageSendEmbed("1251510834832736300", &discordgo.MessageEmbed{Title: "Message edited!", Description: editEmbed})
+}
+
+func messageDelete(s *discordgo.Session, d *discordgo.MessageDelete) {
+	var beforeDeleteAuthorID string
+	var beforeDeleteContent string
+	if d.BeforeDelete == nil {
+		beforeDeleteAuthorID = "None"
+		beforeDeleteContent = "None"
+	} else {
+		beforeDeleteAuthorID = d.BeforeDelete.Author.ID
+		beforeDeleteContent = d.BeforeDelete.Content
+	}
+	deleteEmbed := fmt.Sprintf("User: <@%s>\nIn: <#%s>\nMessage: %s", beforeDeleteAuthorID, d.ChannelID, beforeDeleteContent)
+	s.ChannelMessageSendEmbed("1251510834832736300", &discordgo.MessageEmbed{Title: "Deleted message!", Description: deleteEmbed, Color: 16711680})
+}
+
 func invHandler(s *discordgo.Session, i *discordgo.InviteCreate) {
-	c := fmt.Sprintf("Invite created! Invite was created by @%s and goes to <#%s>", i.Inviter, i.ChannelID)
-	s.ChannelMessageSend("1239034730855530639", c)
+	content := fmt.Sprintf("Created by: <@%s>\nDestination: <#%s>\nCode: %s", i.Inviter.ID, i.ChannelID, i.Code)
+	s.ChannelMessageSendEmbed("1239034730855530639", &discordgo.MessageEmbed{Title: "Invite created!", Description: content})
+}
+
+func embedSend(s *discordgo.Session, m *discordgo.MessageCreate) { // Just ignore this lmao this is just an embed testcode
+	if strings.Contains(m.Content, "!embed") {
+		s.ChannelMessageSendEmbed(m.ChannelID, &discordgo.MessageEmbed{Title: "Skibidi", Description: "I watch skibidi toilet at 3AM", URL: "https://google.com", Color: 2047602})
+	}
 }
 
 func main() {
@@ -125,8 +231,14 @@ func main() {
 		fmt.Println(x)
 	}
 
-	izzy.AddHandler(waifuHandler)
+	izzy.AddHandler(messageHandler)
 	izzy.AddHandler(invHandler)
+	izzy.AddHandler(messageEdit)
+	izzy.AddHandler(embedSend)
+	izzy.AddHandler(messageDelete)
+	izzy.StateEnabled = true
+	izzy.State.TrackChannels = true
+	izzy.State.MaxMessageCount = 100
 	izzy.Identify.Intents = discordgo.IntentsAllWithoutPrivileged
 	izzy.Open()
 	izzy.UpdateGameStatus(0, "with Posi+ive!")
