@@ -148,7 +148,9 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if strings.Contains(m.Content, "good morning izzy") {
-		s.ChannelMessageSend(m.ChannelID, "Good morning honey~")
+		if m.Author.ID == "1248871889674174528" {
+			s.ChannelMessageSend(m.ChannelID, "Good morning honey~")
+		}
 	}
 }
 
