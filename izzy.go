@@ -179,8 +179,12 @@ func messageEdit(s *discordgo.Session, e *discordgo.MessageUpdate) {
 		authorID = e.Author.ID
 	}
 
-	editEmbed := fmt.Sprintf("Author: <@%s>\nIn: <#%s>\nEdited: %s\nBefore edit: %s", authorID, e.ChannelID, afterEdit, beforeEdit)
-	s.ChannelMessageSendEmbed("1251510834832736300", &discordgo.MessageEmbed{Title: "Message edited!", Description: editEmbed})
+	if beforeEdit == afterEdit {
+		return
+	} else {
+		editEmbed := fmt.Sprintf("Author: <@%s>\nIn: <#%s>\nEdited: %s\nBefore edit: %s", authorID, e.ChannelID, afterEdit, beforeEdit)
+		s.ChannelMessageSendEmbed("1251510834832736300", &discordgo.MessageEmbed{Title: "Message edited!", Description: editEmbed})
+	}
 }
 
 func messageDelete(s *discordgo.Session, d *discordgo.MessageDelete) {
